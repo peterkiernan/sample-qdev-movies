@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 @Service
 public class MovieService {
@@ -68,5 +69,70 @@ public class MovieService {
             return Optional.empty();
         }
         return Optional.ofNullable(movieMap.get(id));
+    }
+
+    /**
+     * Search for movies based on provided criteria.
+     * Ahoy! This method helps ye find yer treasure movies by various criteria, matey!
+     * 
+     * @param name Movie name to search for (partial match, case-insensitive)
+     * @param id Specific movie ID to find
+     * @param genre Genre to filter by (partial match, case-insensitive)
+     * @return List of movies matching the search criteria
+     */
+    public List<Movie> searchMovies(String name, Long id, String genre) {
+        logger.info("Ahoy! Searching for movie treasures with criteria - name: {}, id: {}, genre: {}", name, id, genre);
+        
+        List<Movie> results = new ArrayList<>();
+        
+        // If all parameters are null or empty, return empty list to avoid returning all movies
+        if ((name == null || name.trim().isEmpty()) && 
+            id == null && 
+            (genre == null || genre.trim().isEmpty())) {
+            logger.info("No search criteria provided, returning empty treasure chest");
+            return results;
+        }
+        
+        for (Movie movie : movies) {
+            boolean matches = true;
+            
+            // Check name criteria (partial match, case-insensitive)
+            if (name != null && !name.trim().isEmpty()) {
+                matches = matches && movie.getMovieName().toLowerCase()
+                    .contains(name.trim().toLowerCase());
+            }
+            
+            // Check ID criteria (exact match)
+            if (id != null) {
+                matches = matches && movie.getId() == id.longValue();
+            }
+            
+            // Check genre criteria (partial match, case-insensitive)
+            if (genre != null && !genre.trim().isEmpty()) {
+                matches = matches && movie.getGenre().toLowerCase()
+                    .contains(genre.trim().toLowerCase());
+            }
+            
+            if (matches) {
+                results.add(movie);
+            }
+        }
+        
+        logger.info("Found {} movie treasures matching the search criteria", results.size());
+        return results;
+    }
+
+    /**
+     * Get all available genres from the movie collection.
+     * Useful for populating search form dropdowns, ye savvy pirate!
+     * 
+     * @return List of unique genres
+     */
+    public List<String> getAllGenres() {
+        return movies.stream()
+            .map(Movie::getGenre)
+            .distinct()
+            .sorted()
+            .collect(Collectors.toList());
     }
 }
